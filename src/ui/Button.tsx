@@ -1,6 +1,6 @@
-import styled, { css } from "styled-components";
+import styled, { RuleSet, css } from "styled-components";
 
-const sizes = {
+const sizes  : {[key:string]: RuleSet} = {
   small: css`
     font-size: 1.2rem;
     padding: 0.4rem 0.8rem;
@@ -20,7 +20,7 @@ const sizes = {
   `,
 };
 
-const variations = {
+const variations   : {[key:string]: RuleSet} = {
   primary: css`
     color: var(--color-brand-50);
     background-color: var(--color-brand-600);
@@ -47,3 +47,16 @@ const variations = {
     }
   `,
 };
+
+const Button = styled.button<{ size?: string, variation?: string, onClick?: () => void }>`
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-brand-600);
+  ${({size}) => sizes[size ?? 'small']}
+  ${({variation})=>variations[variation ?? 'primary']}
+`
+Button.defaultProps = {
+  variation: 'primary',
+  size: 'medium',
+}
+export default Button
