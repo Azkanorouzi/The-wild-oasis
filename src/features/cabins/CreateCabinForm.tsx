@@ -1,7 +1,6 @@
 import { FieldErrors, FieldValues, useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createEditCabin } from "../../services/apiCabins";
-import toast from "react-hot-toast";
+import { useCreateCabin } from "./useCreateCabin";
+
 
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -9,50 +8,36 @@ import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
-import supabase from "../../services/supabase";
+import { useEditCabin } from "./useEditCabin";
 
 
-  function CreateCabinForm({cabinToEdit = {}}) {
+  function CreateCabinForm({cabinToEdit = {}, onCloseModal} : {cabinToEdit: {}, onCloseModal?: () => void }) {
+    const {isEditting, editCabin} = useEditCabin();
+    const {isCreating, createCabin} = useCreateCabin();
     const {id: editId, ...editValues} = cabinToEdit;
 
-    const queryClient = useQueryClient()
     const isEditSession = Boolean(editId)
     const { register, handleSubmit, reset, getValues, formState} = useForm({ defaultValues: isEditSession ? editValues : {}})
     const {errors} = formState;
-
-    const {mutate: createCabin, isLoading: isCreating} = useMutation({
-      mutationFn: createEditCabin,
-      onSuccess: () => {
-        toast.success("New cabin successfully created.")
-        queryClient.invalidateQueries({queryKey: ['cabins']})
-        reset();
-      },
-      onError: (err: Error) => toast.error(err.message),
-    })
-
-    const {mutate: editCabin, isLoading: isEditting} = useMutation({
-      mutationFn: ({newCabinData, id}) => createEditCabin(newCabinData, id),
-      onSuccess: () => {
-        toast.success("Cabin successfully edited.")
-        queryClient.invalidateQueries({queryKey: ['cabins']})
-        reset();
-      },
-      onError: (err: Error) => toast.error(err.message),
-    })
-
+    
     const isWorking = isCreating || isEditting
 
     function onSubmit(data) {
       
       const image = typeof data.image === 'string' ? data?.image : data?.image[0]
-      if (isEditSession) editCabin({newCabinData: {...data, image}, id: editId})
-      else createCabin({...data, image: image})
+      if (isEditSession) editCabin({newCabinData: {...data, image}, id: editId},{ onSuccess: () => {
+        reset()
+        onCloseModal?.()
+        }})
+      else createCabin({...data, image: image},{ onSuccess: () => {
+    reset()
+    }})
     }
     function onError(errors: FieldErrors<FieldValues>) {
       console.log(errors)
     }
     return (
-      <Form onSubmit={handleSubmit(onSubmit, onError)}>
+      <Form onSubmit={handleSubmit(onSubmit, onError)} type={onCloseModal ? 'modal' : 'regular'}>
         <FormRow label="name" errorMessage={errors?.name?.message}>
           <Input type="text" id="name" {...register('name',  {required: 'This field is required'})} disabled={isWorking}/>
         </FormRow>
@@ -89,7 +74,7 @@ import supabase from "../../services/supabase";
         </FormRow>
 
         <FormRow>
-          <Button variation="secondary" type="reset">
+          <Button variation="secondary" type="reset" onClick={() => onCloseModal?.()}>
             Cancel
           </Button>
           <Button disabled={isWorking}>{isEditSession ? 'Edit cabin' : 'Create new cabin'}</Button>
