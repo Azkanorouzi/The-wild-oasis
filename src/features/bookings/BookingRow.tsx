@@ -1,4 +1,4 @@
-import styled from "styled-components";
+  import styled from "styled-components";
 import { format, isToday } from "date-fns";
 
 import Tag from "../../ui/Tag";
@@ -6,6 +6,9 @@ import Table from "../../ui/Table";
 
 import { formatCurrency } from "../../utils/helpers";
 import { formatDistanceFromNow } from "../../utils/helpers";
+import Menus from "../../ui/Menus";
+import { HiArrowDownOnSquare, HiEye } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 
 const Cabin = styled.div`
   font-size: 1.6rem;
@@ -44,7 +47,7 @@ function BookingRow({
     numGuests,
     totalPrice,
     status,
-    guests: { fullName: guestName, email },
+    guests,
     cabins: { name: cabinName },
   },
 }) {
@@ -53,17 +56,18 @@ function BookingRow({
     "checked-in": "green",
     "checked-out": "silver",
   };
-
+  const navigate = useNavigate(); 
+  console.log(startDate, endDate, numNights)
   return (
     <Table.Row>
       <Cabin>{cabinName}</Cabin>
 
       <Stacked>
-        <span>{guestName}</span>
-        <span>{email}</span>
+        <span>{guests?.guestName}</span>
+        <span>{guests?.email}</span>
       </Stacked>
 
-      <Stacked>
+      {startDate && endDate && numNights ? <Stacked>
         <span>
           {isToday(new Date(startDate))
             ? "Today"
@@ -74,11 +78,21 @@ function BookingRow({
           {format(new Date(startDate), "MMM dd yyyy")} &mdash;{" "}
           {format(new Date(endDate), "MMM dd yyyy")}
         </span>
-      </Stacked>
+      </Stacked> : <span>Not defined</span>}
 
-      <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
+      <Tag type={status ? statusToTagName[status] : 'blue'}>{status?.replace("-", " ") ?? 'Unconfirmed'}</Tag>
 
       <Amount>{formatCurrency(totalPrice)}</Amount>
+
+      <Menus.Menu>
+        <Menus.Toggle id={bookingId}/>
+        <Menus.List id={bookingId}>
+          <Menus.Button icon={<HiEye />} onClick={() => navigate(`/booking/${bookingId}`)}>See Details</Menus.Button>
+          {status === 'unconfirmed' && <Menus.Button icon={<HiArrowDownOnSquare />} onClick={() => navigate(`/checkin/${bookingId}`)}>
+            Check in
+          </Menus.Button>}
+        </Menus.List>
+      </Menus.Menu>
     </Table.Row>
   );
 }
