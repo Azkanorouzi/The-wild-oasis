@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import Checkbox from "../../ui/Checkbox";
 import { formatCurrency } from "../../utils/helpers";
 import { useCheckin } from "../bookings/useCheckIn";
+import { useSettings } from "../settings/useSettings";
 
 const Box = styled.div`
   /* Box */
@@ -26,14 +27,18 @@ const Box = styled.div`
 function CheckinBooking() {
   const [confirmPaid, setConfirmPaid] = useState(false);
   const {booking, isLoading} = useBooking();
+  const [addBreakFast, setAddBreakFast] = useState(false);
+  const {settings, isLoading: isLoadingSettings} = useSettings(); 
+  const {checkin, isCheckingIn} = useCheckin();
   
   useEffect(() => {
     setConfirmPaid(booking?.data?.isPaid ?? false)
   }, [booking?.data?.isPaid])
   
   const moveBack = useMoveBack();
-  const {checkin, isCheckingIn} = useCheckin();
-  if (isLoading) return <Spinner />
+  if (isLoading || isLoadingSettings) return <Spinner />
+
+  const optionalBreakFastPrice = settings.breakfastPrice * booking?.data?.numNights * booking?.data?.numGuests
 
   // const {
   //   id: bookingId,
@@ -46,7 +51,15 @@ function CheckinBooking() {
 
   function handleCheckin() {
     if (!confirmPaid) return;
-    checkin(booking?.data?.id)
+    if (addBreakFast) {
+      checkin({bookingId: booking?.data?.id, breakfast: {
+        hasBreakfast: true,
+        extrasPrice: optionalBreakFastPrice,
+        totalPrice: booking?.data?.totalPrice + optionalBreakFastPrice,
+      }})
+    } else {
+      checkin({bookingId: booking?.data?.id, breakfast: {}})
+    }
   }
   return (
     <>
@@ -57,9 +70,22 @@ function CheckinBooking() {
 
       <BookingDataBox booking={booking?.data} />
 
+      { !booking?.data?.hasBreakfast && <Box>
+        <Checkbox checked={addBreakFast} onChange={() => {
+          // Toggling check value
+          setAddBreakFast((add) => !add);
+          // even if user has already paid they need to pay something more because they also want break fast
+          setConfirmPaid(false);
+        }}
+        id='breakfast'
+        >
+          Want to add break fast for { formatCurrency(optionalBreakFastPrice)}?
+        </Checkbox>
+      </Box>}
+
       <Box>
         <Checkbox checked={confirmPaid} disabled={confirmPaid || isCheckingIn} onChange={() => setConfirmPaid(confirm => !confirm)} id='confirm' >
-        I confirm that {booking?.data?.guests?.fullName} has paid the total amount of {formatCurrency(booking?.data?.totalPrice)}
+        I confirm that {booking?.data?.guests?.fullName} has paid the total amount of {!addBreakFast ? formatCurrency(booking?.data?.totalPrice) : `${formatCurrency(booking?.data?.totalPrice) + formatCurrency(optionalBreakFastPrice)}`}
         </Checkbox>
       </Box>
 

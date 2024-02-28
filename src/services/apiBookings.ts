@@ -5,11 +5,12 @@ export async function getBookings({filter, sortBy, page}) {
   // filter
   let query = 
   supabase.from('bookings').select('*, cabins(name), guests(fullName, email)',  {count: 'exact'});
-  if (page > 1) {
+  console.log(page)
+
     const from = (page - 1) * (10)
     const to = from + 10 - 1;
     query = query.range(from, to)
-  }
+  
   const {data, error, count} = await query;
   if (filter) query = query[filter.method || 'eq'](filter.field, filter.value)
   // sort

@@ -6,9 +6,9 @@ export function useBookings() {
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams();
   // filter
-  console.log(searchParams.get('status'), 'asfsdlkljsdfkjl')
   const filtervalue = searchParams.get('status');
   const filter = !filtervalue || filtervalue === 'all' ? null : {field: 'status', value: filtervalue}
+  console.log(filter)
 
   // Sort by
   const sortByRaw = searchParams.get('sortBy') || 'startDate-desc';

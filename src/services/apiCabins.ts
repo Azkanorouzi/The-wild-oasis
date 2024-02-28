@@ -22,7 +22,6 @@ export async function deleteCabins(id: string) {
 // https://vggyeygmupiigrburwzz.supabase.co/storage/v1/object/public/cabin-images/cabin-002.jpg so this is how we should do it
 
 export async function createEditCabin(newCabin, id) {
-  console.log(newCabin, id)
   const hasImagePath = newCabin.image?.startsWith?.(supabaseUrl);
   const imageName = hasImagePath ? newCabin.image : `${Math.random()}-${newCabin.image.name}`.replaceAll(
     "/",

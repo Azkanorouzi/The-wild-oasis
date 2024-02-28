@@ -80,7 +80,6 @@ function Toggle({id}) {
   const {openId, close, open, setPosition} = useContext(MenuContext)
   function handleClick(e) {
     const rect = e.target.closest('button').getBoundingClientRect()
-    console.log(rect)
     openId === '' || openId !== id ? open(id) : close();
     setPosition({
       x: window.innerWidth - rect.width - rect.x,
@@ -98,14 +97,14 @@ function List({id, children}) {
   if (openId !== id) return <></>
   return createPortal(<StyledList position={position} ref={ref}>{children}</StyledList>, document.body)
 }
-function Button({children, icon, onClick}) {
+function Button({children, icon, onClick, disabled = false}) {
   const {close} = useContext(MenuContext)
   function handleClick() {
     onClick?.();
     close();
   }
   return <li>
-    <StyledButton onClick={handleClick}>
+    <StyledButton onClick={handleClick} disabled={disabled}>
       {icon}
       <span>
       {children}
