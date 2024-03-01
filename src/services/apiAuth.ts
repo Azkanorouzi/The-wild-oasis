@@ -20,6 +20,17 @@ export async function getCurrentUser() {
     return data.user;
 }
 
+export async function signup({fullname, email, password}) {
+    console.log(password, 'this is the password')
+    const {data, error} =    await supabase.auth.signUp({email, password, data: {
+        fullname,
+        avatar: ''
+    }})
+
+    if (error) throw new Error(error.message);
+    return data;
+}
+
 
 export async function logout() {
     const {error} = await supabase.auth.signOut();
