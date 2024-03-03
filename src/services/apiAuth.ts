@@ -20,11 +20,11 @@ export async function getCurrentUser() {
     return data.user;
 }
 
-export async function signup({fullname, email, password}) {
+export async function signup({fullName, email, password}) {
+    console.log(fullName, email, password, 'asjlkdfslkdlksfdkl');
     console.log(password, 'this is the password')
-    const {data, error} =    await supabase.auth.signUp({email, password, data: {
-        fullname,
-        avatar: ''
+    const {data, error} =    await supabase.auth.signUp({email, password, options: {
+        data: {fullName, email, avatar: ''}
     }})
 
     if (error) throw new Error(error.message);
@@ -35,4 +35,9 @@ export async function signup({fullname, email, password}) {
 export async function logout() {
     const {error} = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
+}
+
+export async function updateCurrentUser({password, fullName, email, avatar}) {
+    
+
 }
