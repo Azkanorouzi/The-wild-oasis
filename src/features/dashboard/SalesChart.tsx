@@ -43,7 +43,32 @@ const fakeData = [
   { label: "Feb 06", totalSales: 1450, extrasSales: 400 },
 ];
 
-const isDarkMode = true;
+
+
+import React from 'react'
+import Heading from "../../ui/Heading";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useDarkMode } from "../../context/DarkModeContext";
+import { eachDayOfInterval, format, isDate, isSameDay, subDays } from "date-fns";
+
+export default function SalesChart({bookings, numDays}) {
+  const {isDarkMode} = useDarkMode();
+
+  const allDates = eachDayOfInterval({
+    start: subDays(new Date(), numDays -1),
+    end: new Date(),
+  })
+
+  const data = allDates.map(date => {
+    return {label: format(date, "MMM dd" ), totalSales: bookings.filter(booking => isSameDay(date, new Date(booking.created_at))).reduce((acc, cur) => acc + cur.totalPrice, 0),
+    extrasSales: bookings.filter(booking => isSameDay(date, new Date(booking.created_at))).reduce((acc, cur) => acc + cur.extrasPrice, 0)
+  }
+  })
+
+
+
+  console.log(allDates);
+
 const colors = isDarkMode
   ? {
       totalSales: { stroke: "#4f46e5", fill: "#4f46e5" },
@@ -57,3 +82,20 @@ const colors = isDarkMode
       text: "#374151",
       background: "#fff",
     };
+  return (
+    <StyledSalesChart >
+      <Heading as='h2'>Sales</Heading>
+      <ResponsiveContainer height={300} width={'100%'}>
+      <AreaChart data={data}>
+        <XAxis dataKey='label' tick={{fill: colors.text}} tickLine={{stroke: colors.text}}/>
+        <YAxis unit={'$'} tick={{fill: colors.text}} tickLine={{stroke: colors.text}}/>
+        <Tooltip  contentStyle={{backgroundColor: colors.background}}/>
+        <CartesianGrid strokeDasharray={'4'}/>
+        <Area dataKey='totalSales' type='monotone' fill={colors.totalSales.fill} stroke={colors.totalSales.stroke} strokeWidth={2} name="Total sales" unit={'$'}/>
+        <Area dataKey='extrasSales' type='monotone' fill={colors.extrasSales.fill} stroke={colors.extrasSales.stroke} strokeWidth={2} name="Total sales" unit={'$'}/>
+      </AreaChart>
+      </ResponsiveContainer>
+    </StyledSalesChart>
+  )
+}
+
